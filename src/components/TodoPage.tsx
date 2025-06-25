@@ -1,4 +1,4 @@
-import { Check, Delete } from '@mui/icons-material';
+import { Check, Delete, Edit } from '@mui/icons-material';
 import { Alert, Box, Button, Container, IconButton, Snackbar, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import useFetch from '../hooks/useFetch.ts';
@@ -9,6 +9,9 @@ const TodoPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskName, setNewTaskName] = useState('');
   const [newTaskDescription, setNewTaskDescription] = useState('');
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [notification, setNotification] = useState<{ message: string; severity: 'success' | 'error' } | null>(null);
 
   const handleFetchTasks = async () => {
@@ -44,6 +47,39 @@ const TodoPage = () => {
       await handleFetchTasks();
     } catch {
       setNotification({ message: 'Erreur lors de la création de la tâche', severity: 'error' });
+    }
+  };
+
+  // Démarrer la modification : remplir les champs avec la tâche existante
+  const startEditing = (task: Task) => {
+    setEditingTaskId(task.id);
+    setEditName(task.name);
+    setEditDescription(task.description || '');
+  };
+
+  // Annuler la modification
+  const cancelEditing = () => {
+    setEditingTaskId(null);
+    setEditName('');
+    setEditDescription('');
+  };
+
+  // Sauvegarder la modification
+  const saveEditing = async () => {
+    if (!editName.trim()) {
+      setNotification({ message: 'Le nom de la tâche est obligatoire', severity: 'error' });
+      return;
+    }
+    try {
+      await api.put(`/tasks/${editingTaskId}`, {
+        name: editName.trim(),
+        description: editDescription.trim(),
+      });
+      setNotification({ message: `La tâche "${editName.trim()}" a bien été modifiée`, severity: 'success' });
+      cancelEditing();
+      await handleFetchTasks();
+    } catch {
+      setNotification({ message: 'Erreur lors de la modification de la tâche', severity: 'error' });
     }
   };
 
@@ -98,21 +134,51 @@ const TodoPage = () => {
             gap={1}
             width="100%"
           >
-            <TextField
-              size="small"
-              value={task.name}
-              fullWidth
-              sx={{ maxWidth: 350 }}
-              disabled
-            />
-            <Box>
-              <IconButton color="success" disabled>
-                <Check />
-              </IconButton>
-              <IconButton color="error" onClick={() => handleDelete(task.id)}>
-                <Delete />
-              </IconButton>
-            </Box>
+            {editingTaskId === task.id ? (
+              <>
+                <TextField
+                  size="small"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  sx={{ maxWidth: 200 }}
+                />
+                <TextField
+                  size="small"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  multiline
+                  rows={2}
+                  sx={{ maxWidth: 300 }}
+                />
+                <Button variant="contained" color="success" onClick={saveEditing}>
+                  Sauvegarder
+                </Button>
+                <Button variant="outlined" color="inherit" onClick={cancelEditing}>
+                  Annuler
+                </Button>
+              </>
+            ) : (
+              <>
+                <TextField
+                  size="small"
+                  value={task.name}
+                  fullWidth
+                  sx={{ maxWidth: 350 }}
+                  disabled
+                />
+                <Box>
+                  <IconButton color="primary" onClick={() => startEditing(task)}>
+                    <Edit />
+                  </IconButton>
+                  <IconButton color="success" disabled>
+                    <Check />
+                  </IconButton>
+                  <IconButton color="error" onClick={() => handleDelete(task.id)}>
+                    <Delete />
+                  </IconButton>
+                </Box>
+              </>
+            )}
           </Box>
         ))}
       </Box>
