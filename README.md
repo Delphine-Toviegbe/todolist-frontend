@@ -21,20 +21,25 @@ Ce projet interagit avec un backend NestJS via une API REST pour gérer des tâc
 1. Cloner le dépôt
 
 ```bash
-git clone https://github.com/Delphine-Toviegbe/todolist-frontend.git
-cd todolist-frontend
+    git clone https://github.com/Delphine-Toviegbe/todolist-frontend.git
+    cd todolist-frontend
+```
 
 2. Installer les dépendances
 
+```bash
     yarn install
     # ou
     npm install
+```
 
 3. Lancer le serveur de développement
 
+```bash
     yarn dev
     # ou
     npm run dev
+```
 
 L'application sera disponible sur http://localhost:5173/ (ou autre port selon config Vite).
 
